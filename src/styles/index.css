@@ -1,0 +1,10 @@
+/* Every stylesheet, in cascade order: tokens first, then the page frame, then each area.
+   Imported once from main.tsx. */
+@import "./tokens.css";
+@import "./base.css";
+@import "./rail.css";
+@import "./stage.css";
+@import "./palette.css";
+@import "./controls.css";
+@import "./landing.css";
+@import "./crop.css";

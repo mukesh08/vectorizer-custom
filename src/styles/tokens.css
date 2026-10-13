@@ -1,0 +1,19 @@
+/* Brand tokens. Mirrors src/brand.ts — change both together. Light only: the app has no
+   dark theme, and color-scheme keeps native widgets light under a dark OS setting. */
+:root {
+  --bg: #f3f4f7;
+  --panel: #ffffff;
+  --ink: #161a2b;
+  --muted: #5b6178;
+  --line: #dcdfe8;
+  --accent: #2f45d8;      /* bezier blue */
+  --accent-ink: #ffffff;
+  --anchor: #f0672a;      /* anchor-point orange */
+  --check-a: #e9ebf1;
+  --check-b: #ffffff;
+  --shadow: 0 1px 2px rgba(22,26,43,.06), 0 8px 24px rgba(22,26,43,.06);
+  --f-display: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Poppins", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;   /* light only: keeps form controls and scrollbars light under a dark OS theme */
+}

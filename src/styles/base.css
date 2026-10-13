@@ -1,0 +1,21 @@
+/* Page frame: resets, body type, the centred column, header and footer. */
+body { margin: 0; }
+img { max-width: 100%; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 48px; display: flex; flex-direction: column; gap: 20px; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; margin: 0; font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: -.01em; }
+.brand svg { flex: none; }
+.tag { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+
+.intro { display: flex; flex-direction: column; gap: 6px; }
+.intro h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 4vw, 40px); line-height: 1.1; letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+.intro p { margin: 0; color: var(--muted); max-width: 62ch; }
+.fit { margin: 4px 0 0; padding-left: 18px; color: var(--muted); max-width: 80ch; display: flex; flex-direction: column; gap: 3px; font-size: 14px; }
+.fit b { color: var(--ink); font-weight: 600; }
+
+footer { font-size: 13px; color: var(--muted); }
+details.sect { border-top: 1px solid var(--line); padding-top: 12px; }

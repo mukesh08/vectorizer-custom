@@ -1,0 +1,31 @@
+/* Pre-crop dialog: shown when an upload is bigger than the chosen detail level.
+   Grips sit just inside the selection: at the image edge an outside handle would be clipped
+   by the stage and impossible to grab. */
+.modal-backdrop { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 20px; background: color-mix(in srgb, var(--ink) 55%, transparent); overflow: auto; }
+.modal { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 24px 60px rgba(22,26,43,.25); max-width: 1080px; width: 100%; display: flex; flex-direction: column; }
+.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.modal-head h2 { margin: 0; font-family: var(--f-display); font-size: 18px; font-weight: 700; }
+.iconbtn { font: inherit; font-size: 22px; line-height: 1; width: 32px; height: 32px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer; }
+.iconbtn:hover { background: var(--bg); color: var(--ink); }
+.iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.precrop-body { display: flex; gap: 20px; padding: 20px; align-items: flex-start; flex-wrap: wrap; }
+.crop-stage { position: relative; flex: none; overflow: hidden; border-radius: 10px; margin-inline: auto;
+  background-color: var(--check-b);
+  background-image: linear-gradient(45deg, var(--check-a) 25%, transparent 25%), linear-gradient(-45deg, var(--check-a) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--check-a) 75%), linear-gradient(-45deg, transparent 75%, var(--check-a) 75%);
+  background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; touch-action: none; user-select: none; }
+.crop-stage img { position: absolute; left: 0; top: 0; max-width: none; }
+.crop-box { position: absolute; cursor: move; box-shadow: 0 0 0 9999px color-mix(in srgb, var(--ink) 55%, transparent); outline: 2px solid var(--accent); outline-offset: -1px; }
+.grip { position: absolute; width: 16px; height: 16px; border: 2px solid var(--accent); border-radius: 3px; background: var(--panel); box-shadow: 0 1px 3px rgba(22,26,43,.4); }
+.grip.nw { left: -1px; top: -1px; cursor: nwse-resize; }
+.grip.ne { right: -1px; top: -1px; cursor: nesw-resize; }
+.grip.sw { left: -1px; bottom: -1px; cursor: nesw-resize; }
+.grip.se { right: -1px; bottom: -1px; cursor: nwse-resize; }
+.crop-info { flex: 1 1 280px; min-width: 260px; display: flex; flex-direction: column; gap: 10px; }
+.crop-info h3 { margin: 6px 0 0; font-family: var(--f-display); font-size: 14px; font-weight: 700; }
+.crop-stats { margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.crop-stats div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.crop-stats dt { font-size: 13px; color: var(--muted); }
+.crop-stats dd { margin: 0; font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+.crop-stats dd.over { color: var(--anchor); font-weight: 500; }
+.warn { margin: 4px 0 0; font-size: 13px; padding: 10px 12px; border-radius: 8px; color: var(--ink); background: color-mix(in srgb, var(--anchor) 12%, transparent); border: 1px solid color-mix(in srgb, var(--anchor) 35%, transparent); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 20px; border-top: 1px solid var(--line); }
