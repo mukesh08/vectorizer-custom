@@ -1,0 +1,28 @@
+{
+  "name": "vectorizer-custom",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Turn any JPG or PNG into a clean, scalable SVG. Runs entirely in the browser.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "typecheck": "tsc -b",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "imagetracerjs": "^1.2.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0"
+  }
+}

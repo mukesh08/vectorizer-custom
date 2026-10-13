@@ -1,0 +1,48 @@
+/* Stage: compare toolbar, canvas, viewport layers, lens, busy overlay and trace stats. */
+.stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--panel); }
+.seg button { font: inherit; font-size: 13px; padding: 6px 12px; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+.canvas { position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); overflow: hidden; }
+.viewport { position: relative; overflow: hidden; height: min(72vh, 760px); min-height: 320px; cursor: grab; touch-action: none; user-select: none; outline: none;
+  background-color: var(--check-b);
+  background-image: linear-gradient(45deg, var(--check-a) 25%, transparent 25%), linear-gradient(-45deg, var(--check-a) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--check-a) 75%), linear-gradient(-45deg, transparent 75%, var(--check-a) 75%);
+  background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; }
+.viewport:focus-visible { box-shadow: inset 0 0 0 2px var(--accent); }
+.viewport.panning { cursor: grabbing; }
+.layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.layer img { position: absolute; left: 0; top: 0; transform-origin: 0 0; max-width: none; }
+.svghost { position: absolute; inset: 0; }
+.svghost svg { display: block; position: absolute; left: 0; top: 0; }
+.viewport.mode-vec #leftLayer, .viewport.mode-raster #vecHost { display: none; }
+.divider { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--anchor); cursor: ew-resize; z-index: 2; }
+.divider::before { content: ""; position: absolute; top: 0; bottom: 0; left: -10px; width: 22px; }
+.divider::after { content: ""; position: absolute; top: 50%; left: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; background: var(--panel); border: 2px solid var(--anchor); transform: rotate(45deg); }
+.viewport:not(.mode-split) .divider, .viewport:not(.mode-split) .side-tag { display: none; }
+.side-tag { position: absolute; top: 8px; font-family: var(--f-mono); font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--ink); color: var(--bg); opacity: .85; z-index: 2; pointer-events: none; }
+.side-tag.l { left: 8px; } .side-tag.r { right: 8px; }
+.zoomhint { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-size: 11px; font-family: var(--f-mono); padding: 2px 8px; border-radius: 4px; background: color-mix(in srgb, var(--panel) 85%, transparent); color: var(--muted); pointer-events: none; white-space: nowrap; }
+.viewport.mode-lens #leftLayer { z-index: 1; clip-path: circle(var(--lr, 90px) at var(--lx, -999px) var(--ly, -999px)); }
+.lensring { position: absolute; z-index: 3; pointer-events: none; border-radius: 50%; border: 2px solid #2ee6e6; box-shadow: 0 0 0 4px rgba(46,230,230,.25), 0 0 18px 6px rgba(46,230,230,.45); display: none; }
+.viewport.mode-lens.lens-on .lensring { display: block; }
+.viewport.mode-lens:not(.lens-on) #leftLayer { visibility: hidden; }
+.lensbar { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.lensbar input { width: 90px; }
+#zooms output { font-family: var(--f-mono); font-size: 12px; padding: 6px 10px; min-width: 70px; text-align: right; border-left: 1px solid var(--line); color: var(--ink); }
+
+.busy { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--panel) 55%, transparent); font-family: var(--f-mono); font-size: 13px; }
+.busy span { background: var(--panel); border: 1px solid var(--line); padding: 8px 14px; border-radius: 999px; display: inline-flex; gap: 8px; align-items: center; }
+.busy i { width: 8px; height: 8px; background: var(--anchor); transform: rotate(45deg); animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(405deg); } }
+@media (prefers-reduced-motion: reduce) { .busy i { animation: none; } }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.stats div { background: var(--panel); padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+.stats dt { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stats dd { margin: 0; font-family: var(--f-mono); font-size: 16px; font-variant-numeric: tabular-nums; }
+
+.actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn { font: inherit; font-weight: 600; font-size: 14px; padding: 10px 18px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
