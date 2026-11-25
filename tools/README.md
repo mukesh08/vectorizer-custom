@@ -98,6 +98,17 @@ endpoint first. Otherwise any visitor can spend your credits.
 
 - Vercel caps a serverless request body near 4.5MB, well under the API's own 30MiB limit, so the
   proxy rejects images above 4MB with a clear message. Lower the detail level or crop first.
+- **The proxy uses the Node `(req, res)` signature, not the Web `Request`/`Response` one.**
+  Returning a `Response` from a Vercel Node function does nothing: the adapter ignores it,
+  `res.end()` is never called, and the request hangs until the platform kills it — which looks
+  like a dead endpoint, not an error. This was found by calling the deployed URL and getting zero
+  bytes after 120s.
+- **The image is the raw request body; options are query parameters.** The proxy therefore never
+  parses multipart and rebuilds the upstream form from an allowlist, so the request it receives
+  and the request it sends share no serialisation and nothing can be smuggled through.
+- Vectorizing is slow, so the function sets `maxDuration: 60` and gives up on upstream at 50s with
+  a message. On a plan with a lower ceiling a large image may still be cut off by the platform
+  before the function can answer.
 - The engine always requests SVG; other formats are rebuilt locally from that result. Like
   VTracer and imagetracer it returns markup rather than fitted shapes, so PDF/EPS/DXF export
   stays unavailable on this engine.
