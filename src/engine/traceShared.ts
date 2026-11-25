@@ -5,6 +5,7 @@
 import { yieldUI } from "./color";
 import { cfg, flag } from "./config";
 import { fitLoop, fitPiece, taubin, vdot, vlen, vnorm, vsub } from "./curve";
+import { fourierLoop } from "./fourier";
 import { precisionLoop, precisionOpen } from "./precision";
 import { loopArea } from "./shapes";
 import type { AliveFn, Cubic, Layer, Loop, Pt, RGB, StageFn } from "./types";
@@ -22,6 +23,8 @@ export interface SharedOpts {
   precision?: boolean;
   /** Turn sharpness above which a polygon vertex counts as a corner. */
   alphaMax?: number;
+  /** Harmonic count for Fourier fitting of closed outlines; 0 keeps the curve fitter. */
+  fourier?: number;
 }
 
 /** pixel-corner staircase -> edge midpoints (ends kept on their junction corners) */
@@ -101,7 +104,7 @@ interface Chain {
 interface Ref { i: number; fwd: boolean; start?: number; end?: number; vOut?: Pt; vIn?: Pt; used?: boolean }
 
 export async function traceShared(idx: Uint8Array, w: number, h: number, pal: RGB[], o: SharedOpts): Promise<{ layers: Layer[]; colors: number } | null> {
-  const { tol, cornerDeg, skip = new Set<number>(), stage, alive, arc = 0, etol = 0, scale = 1, precision = false, alphaMax = 1 } = o;
+  const { tol, cornerDeg, skip = new Set<number>(), stage, alive, arc = 0, etol = 0, scale = 1, precision = false, alphaMax = 1, fourier = 0 } = o;
   const OUT = 256, W1 = w + 1;
   const lab = (x: number, y: number): number => (x < 0 || y < 0 || x >= w || y >= h) ? OUT : idx[y * w + x];
   const NH = w * (h + 1);
@@ -220,14 +223,20 @@ export async function traceShared(idx: Uint8Array, w: number, h: number, pal: RG
   for (let i = 0; i < chains.length; i++) {
     const ch = chains[i];
     if (ch.skip || (!wanted(ch.R) && !wanted(ch.L))) continue;
-    if (precision) {
+    const midpoints = (): Pt[] => {
+      const poly: Pt[] = [], p = ch.pts;
+      for (let j = 1; j < p.length; j++) poly.push([(p[j - 1][0] + p[j][0]) / 2, (p[j - 1][1] + p[j][1]) / 2]);
+      return poly;
+    };
+    if (fourier > 0 && ch.closed) {
+      // the series needs a period, so it runs on the smoothed midpoint chain in both modes
+      ch.loop = fourierLoop(midpoints(), fourier, scale);
+    } else if (precision) {
       const sc = Math.max(1, Math.sqrt(scale));
       if (ch.closed) ch.loop = precisionLoop(ch.pts, tol, alphaMax, etol, sc);
       else ch.c = precisionOpen(ch.pts, tol, alphaMax, sc);
     } else if (ch.closed) {
-      const poly: Pt[] = []; const p = ch.pts;
-      for (let j = 1; j < p.length; j++) poly.push([(p[j - 1][0] + p[j][0]) / 2, (p[j - 1][1] + p[j][1]) / 2]);
-      ch.loop = fitLoop(poly, tol, cosCorner, 1, arc, etol);
+      ch.loop = fitLoop(midpoints(), tol, cosCorner, 1, arc, etol);
     } else ch.c = fitChain(ch.P!, tol, cosCorner, arc);
     if ((i & 2047) === 0) { stage("Fitting shared curves… " + Math.round(i / chains.length * 100) + "%"); await yieldUI(); if (!alive()) return null; }
   }

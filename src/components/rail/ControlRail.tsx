@@ -177,10 +177,21 @@ export default function ControlRail({ settings: s, patch, onPreset, onFile, onCr
       </Section>
 
       <Section id="curveSect" title="Curves" hidden={!smoothEng}>
-        <Check id="allowArcs" label="Fit circles & ellipses as true arcs" checked={s.allowArcs} onChange={v => patch({ allowArcs: v })} />
-        <Check id="flatten" label="Flatten circles & ellipses to plain curves" checked={s.flatten} disabled={!s.allowArcs}
+        <Select id="fit" label="Outline fitting" value={s.fit} onChange={v => patch({ fit: v })} options={[
+          { value: "curves", label: "Curve fitting · follows the outline" },
+          { value: "fourier", label: "Fourier series · harmonics" }
+        ]} />
+        <Slider id="harmonics" label="Harmonics" readout={"N = " + s.harmonics} min={1} max={128} value={s.harmonics}
+          hidden={s.fit !== "fourier"} onChange={v => patch({ harmonics: v })} />
+        <p className="hint" hidden={s.fit !== "fourier"}>
+          Each closed outline is rebuilt as x<sub>N</sub>(t) = Σ(a<sub>k</sub> cos kt + b<sub>k</sub> sin kt). N = 1 is an
+          ellipse; raise it to bring detail back. Open-ended lines keep the curve fitter.
+        </p>
+        <Check id="allowArcs" label="Fit circles & ellipses as true arcs" checked={s.allowArcs} disabled={s.fit === "fourier"}
+          onChange={v => patch({ allowArcs: v })} />
+        <Check id="flatten" label="Flatten circles & ellipses to plain curves" checked={s.flatten} disabled={!s.allowArcs || s.fit === "fourier"}
           onChange={v => patch({ flatten: v })} />
-        <p className="hint">Round shapes such as beads and dots come out as exact circles or ellipses. Flatten them if another app can't edit arcs.</p>
+        <p className="hint" hidden={s.fit === "fourier"}>Round shapes such as beads and dots come out as exact circles or ellipses. Flatten them if another app can't edit arcs.</p>
       </Section>
 
       <Section id="outSect" title="Output">
