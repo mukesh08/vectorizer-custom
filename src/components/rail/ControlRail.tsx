@@ -5,10 +5,13 @@ import {
   PRESET_LABELS, lineTolVal, minAreaVal, usesSmoothEngine,
   type PresetName, type Settings
 } from "../../settings";
+import type { History } from "../../hooks/useHistory";
 import { Check, Group, Section, Select, Slider } from "../ui/Fields";
 
 interface Props {
   settings: Settings;
+  /** Undo/redo over the whole rail. */
+  history: History;
   patch: (p: Partial<Settings>) => void;
   onPreset: (p: PresetName) => void;
   onFile: (f: File | null | undefined) => void;
@@ -26,12 +29,13 @@ interface Props {
 const fmtNum = (v: number): string => String(+v.toFixed(3));
 const fmtPx = (v: number): string => v.toFixed(2).replace(/0$/, "") + " px";
 
-export default function ControlRail({ settings: s, patch, onPreset, onFile, onCrop, fileName, palNote, palNoteErr, palOpen }: Props) {
+export default function ControlRail({ settings: s, history, patch, onPreset, onFile, onCrop, fileName, palNote, palNoteErr, palOpen }: Props) {
   const file = useRef<HTMLInputElement>(null);
   const bw = s.preset === "bw";
   const clean = s.palette === "clean";
   const smoothEng = usesSmoothEngine(s);
   const fillStyle = s.drawStyle === "fill_shapes";
+  const cloud = s.engine === "cloud";
 
   return (
     <aside className="rail">
@@ -49,6 +53,13 @@ export default function ControlRail({ settings: s, patch, onPreset, onFile, onCr
       </div>
 
       <button className="btn small" type="button" id="cropBtn" onClick={onCrop}>Crop image…</button>
+
+      <div className="histbar">
+        <button className="btn small" type="button" id="undo" disabled={!history.canUndo}
+          onClick={history.undo} title="Undo the last change">↶ Undo</button>
+        <button className="btn small" type="button" id="redo" disabled={!history.canRedo}
+          onClick={history.redo} title="Redo">↷ Redo</button>
+      </div>
 
       <Group>
         <div className="label">Style</div>
@@ -206,6 +217,38 @@ export default function ControlRail({ settings: s, patch, onPreset, onFile, onCr
         <Check id="flatten" label="Flatten circles & ellipses to plain curves" checked={s.flatten} disabled={!s.allowArcs || s.fit === "fourier"}
           onChange={v => patch({ flatten: v })} />
         <p className="hint" hidden={s.fit === "fourier"}>Round shapes such as beads and dots come out as exact circles or ellipses. Flatten them if another app can't edit arcs.</p>
+      </Section>
+
+      <Section id="cornerSect" title="Corners" hint="sharpen · round" hidden={!cloud}>
+        <Check id="cornerFix" label="Correct corners" checked={s.cornerFix} onChange={v => patch({ cornerFix: v })} />
+        <Group hidden={!s.cornerFix}>
+          <Select id="cornerMode" label="Treatment" value={s.cornerMode} onChange={v => patch({ cornerMode: v })} options={[
+            { value: "automatic", label: "Automatic · decide per corner" },
+            { value: "forceSharp", label: "Sharpen all" },
+            { value: "forceRounded", label: "Round all" },
+            { value: "sharpenBelowThreshold", label: "Sharpen the small ones" }
+          ]} />
+          <Slider id="cornerStrength" label="Correction strength" readout={s.cornerStrength.toFixed(1)}
+            min={0} max={3} step={0.1} value={s.cornerStrength} onChange={v => patch({ cornerStrength: v })} />
+          <Slider id="cornerRadius" label="Rounding radius" readout={"×" + s.cornerRadius.toFixed(2)}
+            min={0} max={4} step={0.05} value={s.cornerRadius} onChange={v => patch({ cornerRadius: v })} />
+        </Group>
+        <p className="hint">
+          Corner classification runs on Vectorizer.AI, so this section applies to the Cloud engine.
+          The local engines use the Corner threshold slider above instead.
+        </p>
+      </Section>
+
+      <Section id="geoSect" title="Geometry" hint="shape detection" hidden={!cloud}>
+        <Check id="geoCircles" label="Circles & ellipses" checked={s.geoCircles} onChange={v => patch({ geoCircles: v })} />
+        <Check id="geoRects" label="Rectangles & quadrilaterals" checked={s.geoRects} onChange={v => patch({ geoRects: v })} />
+        <Check id="geoTriangles" label="Triangles" checked={s.geoTriangles} onChange={v => patch({ geoTriangles: v })} />
+        <Check id="geoStars" label="Stars (3–6 points)" checked={s.geoStars} onChange={v => patch({ geoStars: v })} />
+        <p className="hint">
+          Shapes that match one of these families are emitted as that exact shape rather than as a
+          traced outline, so a circle stays a circle at any zoom. Turn a family off when the tracer
+          is forcing your artwork into it.
+        </p>
       </Section>
 
       <Section id="outSect" title="Output">

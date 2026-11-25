@@ -10,6 +10,7 @@ import SiteHeader from "./components/brand/SiteHeader";
 import PreCrop from "./components/crop/PreCrop";
 import Landing from "./components/landing/Landing";
 import ControlRail from "./components/rail/ControlRail";
+import { useHistory } from "./hooks/useHistory";
 import Stage from "./components/stage/Stage";
 import { VT_CANVAS_ID, VT_SVG_ID } from "./engine/pipeline";
 import { useExport } from "./hooks/useExport";
@@ -30,8 +31,15 @@ export default function App() {
   // messages the page raises itself (file errors, downloads); they win over the tracer's
   const [localNote, setLocalNote] = useState<{ text: string; err: boolean } | null>(null);
 
-  const patch = useCallback((p: Partial<Settings>) => setSettings(s => ({ ...s, ...p })), []);
-  const onPreset = useCallback((p: PresetName) => setSettings(s => applyPreset(s, p)), []);
+  // every settings change goes through history, so Undo/Redo covers the whole rail
+  const history = useHistory(DEFAULT_SETTINGS, setSettings);
+  const commit = useCallback((next: (s: Settings) => Settings) => setSettings(s => {
+    const out = next(s);
+    history.push(out);
+    return out;
+  }), [history]);
+  const patch = useCallback((p: Partial<Settings>) => commit(s => ({ ...s, ...p })), [commit]);
+  const onPreset = useCallback((p: PresetName) => commit(s => applyPreset(s, p)), [commit]);
   const notify = useCallback((text: string, err = false) => setLocalNote({ text, err }), []);
   const clearNote = useCallback(() => setLocalNote(null), []);
 
@@ -82,6 +90,7 @@ export default function App() {
       {source && (
         <div className="bench">
           <ControlRail
+            history={history}
             settings={settings}
             patch={patch}
             onPreset={onPreset}

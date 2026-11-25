@@ -60,6 +60,32 @@ export function cloudParams(s: Settings): Record<string, string> {
     "output.bitmap.anti_aliasing_mode": s.aa
   };
 
+  // Corners: upstream runs a corner-classification stage the local engines don't have. Only send
+  // the detail parameters when it is switched on, so the defaults stay upstream's.
+  p["processing.corners.enabled"] = String(s.cornerFix);
+  if (s.cornerFix) {
+    p["processing.corners.classification"] = s.cornerMode;
+    p["processing.corners.correction_strength"] = String(Math.min(3, Math.max(0, s.cornerStrength)));
+    p["processing.corners.radius_mode"] = "scale";
+    p["processing.corners.radius_value"] = String(Math.min(1000, Math.max(-1000, s.cornerRadius)));
+  }
+
+  // Geometry: one UI switch per shape family, fanned out to the upstream flags it covers
+  const geo: Record<string, boolean> = {
+    "processing.parameterizedShapes.ellipse.circle.enabled": s.geoCircles,
+    "processing.parameterizedShapes.ellipse.general.enabled": s.geoCircles,
+    "processing.parameterizedShapes.quadrilateral.rectangle.enabled": s.geoRects,
+    "processing.parameterizedShapes.quadrilateral.general.enabled": s.geoRects,
+    "processing.parameterizedShapes.quadrilateral.bullet.enabled": s.geoRects,
+    "processing.parameterizedShapes.triangle.general.enabled": s.geoTriangles,
+    "processing.parameterizedShapes.triangle.isosceles.enabled": s.geoTriangles,
+    "processing.parameterizedShapes.star.N3.enabled": s.geoStars,
+    "processing.parameterizedShapes.star.N4.enabled": s.geoStars,
+    "processing.parameterizedShapes.star.N5.enabled": s.geoStars,
+    "processing.parameterizedShapes.star.N6.enabled": s.geoStars
+  };
+  for (const [k, v] of Object.entries(geo)) p[k] = String(v);
+
   // 0 means "unlimited" upstream, which is what the gradient palette wants
   p["processing.max_colors"] = s.palette === "gradients" ? "0" : String(Math.min(256, s.maxColors));
   if (s.customPal.trim()) p["processing.palette"] = s.customPal.trim();

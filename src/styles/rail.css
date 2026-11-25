@@ -25,3 +25,8 @@ select { font: inherit; font-size: 14px; padding: 7px 8px; border-radius: 8px; b
 .check { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .check input { accent-color: var(--accent); width: 16px; height: 16px; }
 
+
+/* Undo/redo, above the presets where the editing happens */
+.histbar { display: flex; gap: .4rem; }
+.histbar .btn { flex: 1; justify-content: center; }
+.histbar .btn:disabled { opacity: .45; cursor: default; }
