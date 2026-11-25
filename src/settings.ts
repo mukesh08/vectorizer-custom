@@ -2,7 +2,7 @@
    tracer, output options only rebuild the file from the shapes it produced. */
 
 export type PresetName = "logo" | "illus" | "photo" | "bw";
-export type EngineName = "precision" | "native" | "smooth" | "vtracer";
+export type EngineName = "precision" | "native" | "smooth" | "vtracer" | "cloud";
 export type Unit = "none" | "px" | "pt" | "in" | "cm" | "mm";
 
 export interface Settings {
@@ -26,6 +26,8 @@ export interface Settings {
   fit: "curves" | "fourier";
   /** N in the Fourier series — 1 is an ellipse, higher restores detail. */
   harmonics: number;
+  /** Billing mode for the cloud engine. `test` is free and watermarked. */
+  cloudMode: "test" | "preview" | "production";
   layering: "stacked" | "cutout";
   /** Trace resolution cap, in megapixels; 0 = original pixels only. */
   maxSize: number;
@@ -101,7 +103,7 @@ export function applyPreset(s: Settings, p: PresetName): Settings {
 
 const BASE: Settings = {
   preset: "illus", engine: "precision", palette: "clean", maxColors: 64, smooth: 1.5, colors: 7, grad: 12,
-  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", fit: "curves", harmonics: 24, layering: "stacked",
+  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", fit: "curves", harmonics: 24, cloudMode: "test", layering: "stacked",
   maxSize: 18, upscale: true, denoise: false, dropBg: true, customPal: "",
   stacking: "cutouts", drawStyle: "fill_shapes", gapOn: true, gapWidth: 2, gapNonScaling: true,
   strokeWidth: 1, strokeNonScaling: true, strokeOverride: false, strokeColor: "#000000", groupBy: "none",
@@ -117,10 +119,12 @@ export const DEFAULT_SETTINGS: Settings = applyPreset(BASE, "illus");
 /** Changing any of these re-traces; everything else only rebuilds the output file. */
 export const TRACE_KEYS: (keyof Settings)[] = [
   "preset", "engine", "palette", "maxColors", "smooth", "colors", "grad", "minArea", "corner", "seglen",
-  "lineTol", "curve", "fit", "harmonics", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
+  "lineTol", "curve", "fit", "harmonics", "cloudMode", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
 ];
 
 /** True when the chosen engine fits smooth curves itself (rather than handing off to VTracer). */
+export const isCloudEngine = (s: Settings): boolean => s.engine === "cloud";
+
 export const usesSmoothEngine = (s: Settings): boolean =>
   (s.engine === "smooth" || s.engine === "precision" || s.engine === "native") &&
   (s.preset === "bw" || s.palette === "clean");

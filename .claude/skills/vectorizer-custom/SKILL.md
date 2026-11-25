@@ -6,7 +6,10 @@ description: Run, drive and change Vectorizer Custom — the in-browser raster-t
 # Vectorizer Custom
 
 A React + TypeScript + Vite app that traces a raster image into vectors entirely in the
-browser, then writes SVG, PDF, EPS, PNG or DXF. No server, no upload, no API key.
+browser, then writes SVG, PDF, EPS, PNG or DXF. No server, no upload, no API key — with one
+deliberate exception: the opt-in **Cloud** engine, which uploads to Vectorizer.AI through
+`api/vectorize.ts`. Every other engine still runs wholly on-device, and Cloud is never the
+default. Keep that true: if you make a remote path the default, the claim above stops holding.
 
 ## Run it
 
@@ -75,6 +78,7 @@ src/
     precision.ts       corner-aware fitting on the original pixel staircase
     curve.ts           Schneider cubic fitting, Taubin smoothing, ellipse fit
     fourier.ts         elliptic Fourier descriptors: closed outlines as a truncated series
+    cloud.ts           Vectorizer.AI engine: maps Settings onto its API, posts via the proxy
     raster.ts shapes.ts color.ts config.ts types.ts
     vtracer/           generated wasm-bindgen glue (do not hand-edit) + vtracer_bg.wasm
   output/              svg.ts vector.ts (EPS/PDF) dxf.ts png.ts size.ts palette.ts
@@ -82,6 +86,8 @@ src/
                        useImageSource, useImageDrop, useReference
   components/          brand/ landing/ rail/ stage/ palette/ crop/ ui/
   styles/              index.css imports tokens, base, rail, stage, palette, controls, landing, crop
+api/
+  vectorize.ts         Vercel function: the ONLY place the Vectorizer.AI secret exists
 ```
 
 ## How it hangs together
@@ -109,6 +115,12 @@ src/
 - **Fourier fitting needs a period,** so `fit: "fourier"` applies to closed outlines only; open
   chains stay on `fitChain`/`precisionOpen`. It also bypasses the ellipse fit, since N=1 already
   *is* the best-fit ellipse — the arc checkboxes are disabled in that mode for that reason.
+- **The cloud proxy is a public endpoint.** `api/vectorize.ts` has no auth of its own, so anyone
+  who finds the deployed URL can call it. That is why mode is decided server-side and defaults to
+  the free `test`, and why paid modes stay refused unless `VECTORIZER_ALLOW_PAID=1`. Before
+  enabling paid modes on a public deployment, put auth or rate limiting in front of it — otherwise
+  the endpoint is an open wallet. Never relay a parameter that is not on `FORWARDABLE`;
+  `image.url` in particular would turn the function into an SSRF fetcher.
 - **Light theme only** — no dark mode by request. `color-scheme: light` is pinned in
   `styles/tokens.css`; don't reintroduce `prefers-color-scheme` blocks.
 - `public/sample.jpg` is not committed, so the sample link falls back to a generated badge.

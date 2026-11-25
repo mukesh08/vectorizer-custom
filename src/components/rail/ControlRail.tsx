@@ -65,8 +65,22 @@ export default function ControlRail({ settings: s, patch, onPreset, onFile, onCr
         { value: "precision", label: "Precision · sharp corners, smooth curves (new)" },
         { value: "native", label: "Precision · original pixels only" },
         { value: "smooth", label: "Smooth · upscaled, extra-soft curves" },
-        { value: "vtracer", label: "Classic · VTracer" }
+        { value: "vtracer", label: "Classic · VTracer" },
+        { value: "cloud", label: "Cloud · Vectorizer.AI (uploads)" }
       ]} />
+
+      <Group hidden={s.engine !== "cloud"}>
+        <Select id="cloudMode" label="Cloud mode" value={s.cloudMode} onChange={v => patch({ cloudMode: v })} options={[
+          { value: "test", label: "Test · free, heavily watermarked" },
+          { value: "preview", label: "Preview · 0.2 credits, light watermark" },
+          { value: "production", label: "Production · 1 credit, clean" }
+        ]} />
+        <p className="hint">
+          This engine is the only one that leaves your device: the image is uploaded to Vectorizer.AI
+          and traced there. Test mode is free. Preview and production spend credits from the
+          deployment's account, and stay disabled until the operator turns them on.
+        </p>
+      </Group>
 
       <Select id="palette" label="Color handling" value={s.palette} disabled={bw} onChange={v => patch({ palette: v })} options={[
         { value: "clean", label: "Clean palette · flat colors, crisp edges" },
