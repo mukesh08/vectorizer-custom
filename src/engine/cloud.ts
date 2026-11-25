@@ -104,13 +104,16 @@ export async function traceCloud(
   const blob = await canvasBlob(prep);
   if (!alive()) return null;
 
-  const body = new FormData();
-  body.set("image", blob, "image.png");
-  body.set("mode", mode);
-  for (const [k, v] of Object.entries(cloudParams(s))) body.set(k, v);
+  // the proxy takes the image as the raw body and the options as query parameters, so that it
+  // never parses multipart and rebuilds the upstream form itself
+  const query = new URLSearchParams({ mode, ...cloudParams(s) });
 
   stage(mode === "test" ? "Tracing on Vectorizer.AI (free test mode)…" : "Tracing on Vectorizer.AI…");
-  const res = await fetch(CLOUD_ENDPOINT, { method: "POST", body });
+  const res = await fetch(`${CLOUD_ENDPOINT}?${query}`, {
+    method: "POST",
+    headers: { "content-type": "image/png" },
+    body: blob
+  });
   if (!alive()) return null;
 
   if (!res.ok) {
