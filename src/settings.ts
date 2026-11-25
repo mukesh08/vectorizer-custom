@@ -28,6 +28,19 @@ export interface Settings {
   harmonics: number;
   /** Billing mode for the cloud engine. `test` is free and watermarked. */
   cloudMode: "test" | "preview" | "production";
+
+  /* Corner and geometry detection. These are upstream processing stages, so they apply to the
+     cloud engine only; the local engines have their own `corner` threshold and `allowArcs`. */
+  cornerFix: boolean;
+  cornerMode: "automatic" | "forceRounded" | "sharpenBelowThreshold" | "forceSharp";
+  /** 0 = leave corners alone, 3 = correct hard. */
+  cornerStrength: number;
+  /** Rounding radius, as a multiple of what was measured in the source. */
+  cornerRadius: number;
+  geoCircles: boolean;
+  geoRects: boolean;
+  geoTriangles: boolean;
+  geoStars: boolean;
   layering: "stacked" | "cutout";
   /** Trace resolution cap, in megapixels; 0 = original pixels only. */
   maxSize: number;
@@ -103,7 +116,10 @@ export function applyPreset(s: Settings, p: PresetName): Settings {
 
 const BASE: Settings = {
   preset: "illus", engine: "precision", palette: "clean", maxColors: 64, smooth: 1.5, colors: 7, grad: 12,
-  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", fit: "curves", harmonics: 24, cloudMode: "test", layering: "stacked",
+  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", fit: "curves", harmonics: 24, cloudMode: "test",
+  cornerFix: false, cornerMode: "automatic", cornerStrength: 1, cornerRadius: 1,
+  geoCircles: true, geoRects: true, geoTriangles: true, geoStars: true,
+  layering: "stacked",
   maxSize: 18, upscale: true, denoise: false, dropBg: true, customPal: "",
   stacking: "cutouts", drawStyle: "fill_shapes", gapOn: true, gapWidth: 2, gapNonScaling: true,
   strokeWidth: 1, strokeNonScaling: true, strokeOverride: false, strokeColor: "#000000", groupBy: "none",
@@ -119,7 +135,9 @@ export const DEFAULT_SETTINGS: Settings = applyPreset(BASE, "illus");
 /** Changing any of these re-traces; everything else only rebuilds the output file. */
 export const TRACE_KEYS: (keyof Settings)[] = [
   "preset", "engine", "palette", "maxColors", "smooth", "colors", "grad", "minArea", "corner", "seglen",
-  "lineTol", "curve", "fit", "harmonics", "cloudMode", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
+  "lineTol", "curve", "fit", "harmonics", "cloudMode",
+  "cornerFix", "cornerMode", "cornerStrength", "cornerRadius",
+  "geoCircles", "geoRects", "geoTriangles", "geoStars", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
 ];
 
 /** True when the chosen engine fits smooth curves itself (rather than handing off to VTracer). */

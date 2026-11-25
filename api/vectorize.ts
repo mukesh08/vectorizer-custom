@@ -76,7 +76,28 @@ const FORWARDABLE = new Set([
   "output.size.output_dpi",
   "processing.max_colors",
   "processing.palette",
-  "processing.shapes.min_area_px"
+  "processing.shapes.min_area_px",
+  "processing.corners.enabled",
+  "processing.corners.classification",
+  "processing.corners.correction_strength",
+  "processing.corners.radius_basis",
+  "processing.corners.radius_mode",
+  "processing.corners.radius_value",
+  "processing.corners.min_rounded_radius_px",
+  "processing.corners.max_rounded_radius_px",
+  "processing.corners.threshold_metric",
+  "processing.corners.threshold_value",
+  "processing.parameterizedShapes.ellipse.circle.enabled",
+  "processing.parameterizedShapes.ellipse.general.enabled",
+  "processing.parameterizedShapes.quadrilateral.rectangle.enabled",
+  "processing.parameterizedShapes.quadrilateral.general.enabled",
+  "processing.parameterizedShapes.quadrilateral.bullet.enabled",
+  "processing.parameterizedShapes.triangle.general.enabled",
+  "processing.parameterizedShapes.triangle.isosceles.enabled",
+  "processing.parameterizedShapes.star.N3.enabled",
+  "processing.parameterizedShapes.star.N4.enabled",
+  "processing.parameterizedShapes.star.N5.enabled",
+  "processing.parameterizedShapes.star.N6.enabled"
 ]);
 
 const FREE_MODES = new Set(["test", "test_preview"]);
