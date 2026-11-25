@@ -5,8 +5,9 @@ import {
   prepKey, prepare, traceIT, traceShapes, traceVT, tracesShapes,
   type Prepared, type Runner, type SourceImage, type TracedResult
 } from "../engine/pipeline";
+import { traceCloud, type CloudError } from "../engine/cloud";
 import { initVT } from "../engine/vtracer/vtracer_webapp.js";
-import { TRACE_KEYS, type Settings } from "../settings";
+import { isCloudEngine, TRACE_KEYS, type Settings } from "../settings";
 
 export type Note = { text: string; err: boolean };
 
@@ -87,7 +88,10 @@ export function useVectorizer(source: SourceImage | null, settings: Settings): V
 
     try {
       let res: TracedResult | null;
-      if (tracesShapes(s, prep)) {
+      if (isCloudEngine(s)) {
+        // traced off-device, so it never reaches the local shape or wasm paths below
+        res = await traceCloud(prep, s, s.cloudMode, stage, alive);
+      } else if (tracesShapes(s, prep)) {
         res = await traceShapes(cloneForTrace(prep), s, stage, alive);
       } else if (engine.current === "vtracer") {
         res = await traceVT(prep, s, r => { runner.current = r; }, stage, alive);
@@ -104,7 +108,14 @@ export function useVectorizer(source: SourceImage | null, settings: Settings): V
       setBusy(null);
     } catch (err) {
       console.error(err);
-      if (alive()) { setBusy(null); setNote("Tracing failed on this image. Try a lower detail level.", true); }
+      if (!alive()) return;
+      setBusy(null);
+      // the proxy explains exactly what went wrong (no key, paid mode off, out of credits), so
+      // show that rather than burying it under a generic message
+      const msg = isCloudEngine(s) && err instanceof Error && err.message
+        ? err.message + ((err as CloudError).upstreamCode ? ` (code ${(err as CloudError).upstreamCode})` : "")
+        : "Tracing failed on this image. Try a lower detail level.";
+      setNote(msg, true);
     }
   }, [setNote]);
 

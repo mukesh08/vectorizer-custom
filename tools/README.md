@@ -49,3 +49,58 @@ These are *output* settings, so switching never re-traces. Two things to know:
   emits inherently smooth closed curves, so a thin stroke along them avoids the small wobbles
   the staircase-following fitter leaves. It costs file size: on the reference image, 161 KB at
   N=32 against 31 KB from the curve fitter.
+
+## Cloud engine (Vectorizer.AI)
+
+The **Cloud · Vectorizer.AI** engine is the one path in this app that leaves the device. It posts
+the prepared image to `api/vectorize.ts`, which adds HTTP Basic credentials and forwards it to
+`https://api.vectorizer.ai/api/v1/vectorize`.
+
+### Setup
+
+Set these in the Vercel project (Settings → Environment Variables), then redeploy:
+
+| Variable | Required | Meaning |
+|---|---|---|
+| `VECTORIZER_API_ID` | yes | API Id — the Basic auth username |
+| `VECTORIZER_API_SECRET` | yes | API Secret — the Basic auth password |
+| `VECTORIZER_ALLOW_PAID` | no | `1` permits the credit-spending modes; anything else refuses them |
+
+Without the first two, the engine reports that the deployment is not configured and nothing is
+uploaded. With them, **test mode works and costs nothing.**
+
+### Modes and cost
+
+| Mode | Credits | Result |
+|---|---|---|
+| `test` (default) | 0 | heavily watermarked |
+| `preview` | 0.2 | PNG at 4× input, light watermark |
+| `production` | 1.0 | clean SVG |
+
+### Why the secret cannot live in the browser
+
+Upstream authenticates with HTTP Basic where the password *is* the API Secret. Anything in the
+client bundle is readable by any visitor, and whoever reads it can spend the account's credits —
+so the proxy exists purely to keep the key server-side.
+
+**The proxy is itself public and unauthenticated.** Two guards follow from that, and both matter:
+
+1. **The server picks the mode**, not the caller. It defaults to `test`, and refuses paid modes
+   until `VECTORIZER_ALLOW_PAID=1` is set deliberately.
+2. **Only fields on `FORWARDABLE` are relayed.** Unknown fields are dropped rather than passed on.
+   This is not tidiness: `image.url` would make the function fetch arbitrary URLs on request
+   (SSRF), and `policy.retention_days` would leave users' images on a third-party disk.
+
+If you enable paid modes on a public deployment, put auth or rate limiting in front of the
+endpoint first. Otherwise any visitor can spend your credits.
+
+### Notes
+
+- Vercel caps a serverless request body near 4.5MB, well under the API's own 30MiB limit, so the
+  proxy rejects images above 4MB with a clear message. Lower the detail level or crop first.
+- The engine always requests SVG; other formats are rebuilt locally from that result. Like
+  VTracer and imagetracer it returns markup rather than fitted shapes, so PDF/EPS/DXF export
+  stays unavailable on this engine.
+- Parameter names, enums and the base URL come from the first-party spec at
+  `https://vectorizer.ai/api/openapi.json`. Prefer it over the HTML docs, which quote an older
+  host (`vectorizer.ai/api/v1`) that contradicts the spec's `api.vectorizer.ai/api/v1`.
