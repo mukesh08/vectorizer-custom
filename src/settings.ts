@@ -22,6 +22,10 @@ export interface Settings {
   /** Index into LINE_TOLS. */
   lineTol: number;
   curve: "spline" | "polygon" | "none";
+  /** How closed outlines are fitted: the curve fitter, or a truncated Fourier series. */
+  fit: "curves" | "fourier";
+  /** N in the Fourier series — 1 is an ellipse, higher restores detail. */
+  harmonics: number;
   layering: "stacked" | "cutout";
   /** Trace resolution cap, in megapixels; 0 = original pixels only. */
   maxSize: number;
@@ -97,7 +101,7 @@ export function applyPreset(s: Settings, p: PresetName): Settings {
 
 const BASE: Settings = {
   preset: "illus", engine: "precision", palette: "clean", maxColors: 64, smooth: 1.5, colors: 7, grad: 12,
-  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", layering: "stacked",
+  minArea: 1, corner: 60, seglen: 4, lineTol: 6, curve: "spline", fit: "curves", harmonics: 24, layering: "stacked",
   maxSize: 18, upscale: true, denoise: false, dropBg: true, customPal: "",
   stacking: "cutouts", drawStyle: "fill_shapes", gapOn: true, gapWidth: 2, gapNonScaling: true,
   strokeWidth: 1, strokeNonScaling: true, strokeOverride: false, strokeColor: "#000000", groupBy: "none",
@@ -113,7 +117,7 @@ export const DEFAULT_SETTINGS: Settings = applyPreset(BASE, "illus");
 /** Changing any of these re-traces; everything else only rebuilds the output file. */
 export const TRACE_KEYS: (keyof Settings)[] = [
   "preset", "engine", "palette", "maxColors", "smooth", "colors", "grad", "minArea", "corner", "seglen",
-  "lineTol", "curve", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
+  "lineTol", "curve", "fit", "harmonics", "layering", "maxSize", "upscale", "denoise", "dropBg", "customPal", "stacking", "allowArcs"
 ];
 
 /** True when the chosen engine fits smooth curves itself (rather than handing off to VTracer). */

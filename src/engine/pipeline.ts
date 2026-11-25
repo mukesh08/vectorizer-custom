@@ -161,6 +161,7 @@ export async function traceShapes(prep: Prepared, s: Settings, stage: StageFn, a
     cornerDeg: s.corner, prec: scale > 1.5 ? 1 : 2,
     arc: cfg("arc", 2.2) * Math.max(1, scale) * (s.smooth / 1.5),
     skip: skipSet, dil: bw || s.stacking === "cutouts" ? 0 : 2,
+    fourier: s.fit === "fourier" ? Math.max(1, Math.round(s.harmonics)) : 0,
     stage, alive
   };
   const res = precision || s.stacking === "cutouts"

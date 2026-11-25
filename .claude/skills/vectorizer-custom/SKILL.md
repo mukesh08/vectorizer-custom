@@ -74,6 +74,7 @@ src/
     traceSmooth.ts     stacked tracer: blurred mask + marching squares per color
     precision.ts       corner-aware fitting on the original pixel staircase
     curve.ts           Schneider cubic fitting, Taubin smoothing, ellipse fit
+    fourier.ts         elliptic Fourier descriptors: closed outlines as a truncated series
     raster.ts shapes.ts color.ts config.ts types.ts
     vtracer/           generated wasm-bindgen glue (do not hand-edit) + vtracer_bg.wasm
   output/              svg.ts vector.ts (EPS/PDF) dxf.ts png.ts size.ts palette.ts
@@ -105,6 +106,9 @@ src/
   cached analysis is cloned per run (`cloneForTrace`). Keep that if you touch the cache.
 - **New setting?** Add it to `Settings`, give it a default in `settings.ts`, and decide whether it
   belongs in `TRACE_KEYS`. Forgetting means it either never re-traces or re-traces on every edit.
+- **Fourier fitting needs a period,** so `fit: "fourier"` applies to closed outlines only; open
+  chains stay on `fitChain`/`precisionOpen`. It also bypasses the ellipse fit, since N=1 already
+  *is* the best-fit ellipse — the arc checkboxes are disabled in that mode for that reason.
 - **Light theme only** — no dark mode by request. `color-scheme: light` is pinned in
   `styles/tokens.css`; don't reintroduce `prefers-color-scheme` blocks.
 - `public/sample.jpg` is not committed, so the sample link falls back to a generated badge.

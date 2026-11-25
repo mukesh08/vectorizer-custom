@@ -4,6 +4,7 @@
    staircase at all; each contour is then split at real corners and fitted with cubics. */
 import { yieldUI } from "./color";
 import { fitLoop } from "./curve";
+import { fourierLoop } from "./fourier";
 import { blur1D, marchingSquares } from "./raster";
 import type { AliveFn, Layer, Loop, Pt, RGB, StageFn } from "./types";
 
@@ -18,6 +19,8 @@ export interface SmoothOpts {
   skip?: Set<number>;
   /** How far each layer slips under the ones stacked above it. */
   dil?: number;
+  /** Harmonic count for Fourier fitting of closed outlines; 0 keeps the curve fitter. */
+  fourier?: number;
   stage: StageFn;
   alive: AliveFn;
   /** Contour smoothing strength; 0 keeps the raw iso-contour. */
@@ -32,7 +35,7 @@ export interface TraceResult {
 }
 
 export async function traceSmooth(idx: Uint8Array, w: number, h: number, pal: RGB[], o: SmoothOpts): Promise<TraceResult | null> {
-  const { sigma, tol, cornerDeg, prec, skip = new Set<number>(), dil = 2, stage, alive, arc = 0, etol = 0 } = o;
+  const { sigma, tol, cornerDeg, prec, skip = new Set<number>(), dil = 2, stage, alive, arc = 0, etol = 0, fourier = 0 } = o;
   const cnt = new Int32Array(256), minx = new Int32Array(256).fill(w), miny = new Int32Array(256).fill(h), maxx = new Int32Array(256).fill(-1), maxy = new Int32Array(256).fill(-1);
   for (let y = 0, p = 0; y < h; y++) for (let x = 0; x < w; x++, p++) {
     const k = idx[p]; if (k === 255) continue;
@@ -80,7 +83,7 @@ export async function traceSmooth(idx: Uint8Array, w: number, h: number, pal: RG
       for (let i = 0, n = lp.length; i < n; i++) { const a = lp[i], b = lp[(i + 1) % n]; area += a[0] * b[1] - b[0] * a[1]; }
       if (Math.abs(area) < 3) continue;
       const pts: Pt[] = lp.map(p => [p[0] + x0 - 1 + 0.5, p[1] + y0 - 1 + 0.5]);
-      const f = fitLoop(pts, tol, cosCorner, prec, arc, etol);
+      const f = fourier > 0 ? fourierLoop(pts, fourier, 1) : fitLoop(pts, tol, cosCorner, prec, arc, etol);
       if (f) { f.area = Math.abs(area) / 2; ls.push(f); }
     }
     if (ls.length) layers.push({ k: L, c: pal[L], loops: ls });
